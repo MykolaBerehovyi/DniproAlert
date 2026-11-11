@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Вхід{% endblock %}
+{% block main_class %}main-login{% endblock %}
+{% block content %}
+<section class="login-section" aria-labelledby="login-title">
+    <div class="page-heading">
+        <h1 id="login-title">Вхід до адмінпанелі</h1>
+    </div>
+    {% if error %}
+    <div class="alert alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+    <form action="/admin/login" method="post" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="field">
+            <label for="login">Логін</label>
+            <input id="login" name="login" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+        </div>
+        <div class="field">
+            <label for="password">Пароль</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="button button-primary button-full">Увійти</button>
+    </form>
+</section>
+{% endblock %}

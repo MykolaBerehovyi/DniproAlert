@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>{% block title %}Адміністрування{% endblock %} · Mobile Alert</title>
+    <link rel="icon" href="/static/alert.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{{ '/admin/cities' if current_user is defined and current_user else '/admin/login' }}">
+                <img src="/static/alert.svg" width="36" height="36" alt="">
+                <span>Mobile Alert</span>
+            </a>
+            {% if current_user is defined and current_user %}
+            <nav class="navigation" aria-label="Основна навігація">
+                <a href="/admin/cities"{% if active_page|default('') == 'cities' %} aria-current="page"{% endif %}>Міста</a>
+                <a href="/admin/history"{% if active_page|default('') == 'history' %} aria-current="page"{% endif %}>Історія</a>
+                {% if current_user.role.value == 'superadmin' %}
+                <a href="/admin/staff"{% if active_page|default('') == 'staff' %} aria-current="page"{% endif %}>Користувачі</a>
+                {% endif %}
+            </nav>
+            <div class="account">
+                <div class="account-details">
+                    <span class="account-login">{{ current_user.login }}</span>
+                    <span class="account-role">{{ 'Суперадміністратор' if current_user.role.value == 'superadmin' else 'Адміністратор' }}</span>
+                </div>
+                <form action="/admin/logout" method="post" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token|default('') }}">
+                    <button type="submit" class="button button-quiet">Вийти</button>
+                </form>
+            </div>
+            {% else %}
+            <span class="header-caption">Адміністрування</span>
+            {% endif %}
+        </div>
+    </header>
+    <main id="main" class="main-content {% block main_class %}{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

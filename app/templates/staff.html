@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import errors_list, role_options %}
+{% set active_page = 'staff' %}
+{% block title %}Користувачі{% endblock %}
+{% block content %}
+<div class="page-heading page-heading-row">
+    <h1>Користувачі</h1>
+    <span class="record-count">Записів: {{ staff|length }}</span>
+</div>
+{% if notice|default('') %}<div class="alert alert-success" role="status">{{ notice }}</div>{% endif %}
+{{ errors_list(errors) }}
+<section class="form-section" aria-labelledby="create-staff-title">
+    <h2 id="create-staff-title">Новий користувач</h2>
+    <form action="/admin/staff" method="post" class="staff-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="field">
+            <label for="staff-login">Логін</label>
+            <input id="staff-login" name="login" value="{{ form.get('login', '') }}" type="text" minlength="3" maxlength="50" autocomplete="off" autocapitalize="none" spellcheck="false" required{% if errors.get('login') %} aria-invalid="true"{% endif %}>
+        </div>
+        <div class="field">
+            <label for="staff-password">Пароль (12–128 символів)</label>
+            <input id="staff-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required{% if errors.get('password') %} aria-invalid="true"{% endif %}>
+        </div>
+        <div class="field">
+            <label for="staff-role">Роль</label>
+            <select id="staff-role" name="role">{{ role_options(form.get('role', 'admin')) }}</select>
+        </div>
+        <button type="submit" class="button button-primary">Створити</button>
+    </form>
+</section>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Користувачі адмінпанелі">
+    <table class="data-table staff-table">
+        <thead>
+            <tr><th scope="col">Користувач</th><th scope="col">Роль</th><th scope="col">Стан</th><th scope="col" class="cell-action">Дії</th></tr>
+        </thead>
+        <tbody>
+        {% for person in staff %}
+            <tr>
+                <th scope="row">{{ person.login }}{% if person.id == current_user.id %}<span class="self-label">Ви</span>{% endif %}<span class="cell-secondary">ID {{ person.id }}</span></th>
+                <td><select name="role" form="staff-form-{{ person.id }}" aria-label="Роль користувача {{ person.login }}">{{ role_options(person.role.value) }}</select></td>
+                <td><label class="checkbox-label"><input type="checkbox" name="is_active" form="staff-form-{{ person.id }}"{% if person.is_active %} checked{% endif %}><span>Активний</span></label></td>
+                <td class="cell-action">
+                    <form id="staff-form-{{ person.id }}" action="/admin/staff/{{ person.id }}/update" method="post" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="button button-secondary">Зберегти</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="empty-state">Користувачів поки немає.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

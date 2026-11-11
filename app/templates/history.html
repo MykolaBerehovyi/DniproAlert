@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import threat_badge %}
+{% set active_page = 'history' %}
+{% block title %}Історія класифікацій{% endblock %}
+{% block content %}
+<div class="page-heading page-heading-row">
+    <h1>Історія класифікацій</h1>
+    <span class="record-count">Сторінка {{ page }}</span>
+</div>
+<form action="/admin/history" method="get" class="filter-form">
+    <div class="field">
+        <label for="history-city">Місто</label>
+        <select id="history-city" name="city_id">
+            <option value="">Усі міста</option>
+            {% for city in cities %}
+            <option value="{{ city.id }}"{% if selected_city is defined and selected_city and selected_city|string == city.id|string %} selected{% endif %}>{{ city.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="button button-secondary">Застосувати</button>
+    {% if selected_city is defined and selected_city %}<a href="/admin/history" class="table-link">Скинути</a>{% endif %}
+</form>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Історія класифікацій">
+    <table class="data-table history-table">
+        <thead>
+            <tr><th scope="col">Дата, UTC</th><th scope="col">Місто</th><th scope="col">Загроза</th><th scope="col">Повідомлення</th></tr>
+        </thead>
+        <tbody>
+        {% for entry in history %}
+            <tr>
+                <td class="date-cell">{{ entry.occurred_at.strftime('%d.%m.%Y') if entry.occurred_at else '-' }}<span class="cell-secondary">{{ entry.occurred_at.strftime('%H:%M:%S') if entry.occurred_at else '' }}</span></td>
+                <td>{{ entry.city_name }}</td>
+                <td>{{ threat_badge(entry.threat) }}</td>
+                <td class="message-cell">
+                    <p class="message-preview">{{ entry.telegram_message|truncate(200, true) }}</p>
+                    <details class="history-details">
+                        <summary>Деталі класифікації</summary>
+                        <div class="details-content">
+                            <dl class="decision-list">
+                                <div><dt>Перша відповідь</dt><dd>{{ entry.first_answer }}</dd></div>
+                                <div><dt>Фінальна відповідь</dt><dd class="final-answer">{{ entry.final_answer }}</dd></div>
+                                <div><dt>Чат / повідомлення</dt><dd class="code-value">{{ entry.source_chat_id }} / {{ entry.source_message_id }}</dd></div>
+                            </dl>
+                            <p class="full-message">{{ entry.telegram_message }}</p>
+                        </div>
+                    </details>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="empty-state">Записів класифікації немає.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<nav class="pagination" aria-label="Сторінки історії">
+    <span class="record-count">Сторінка {{ page }}</span>
+    <div class="pagination-actions">
+        {% if page > 1 %}
+        <a class="button button-secondary" href="/admin/history?page={{ page - 1 }}{% if selected_city is defined and selected_city %}&amp;city_id={{ selected_city }}{% endif %}" rel="prev">Попередня</a>
+        {% else %}<span class="button button-secondary button-disabled" aria-disabled="true">Попередня</span>{% endif %}
+        {% if has_next %}
+        <a class="button button-secondary" href="/admin/history?page={{ page + 1 }}{% if selected_city is defined and selected_city %}&amp;city_id={{ selected_city }}{% endif %}" rel="next">Наступна</a>
+        {% else %}<span class="button button-secondary button-disabled" aria-disabled="true">Наступна</span>{% endif %}
+    </div>
+</nav>
+{% endblock %}

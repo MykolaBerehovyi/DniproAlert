@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Помилка {{ status_code }}{% endblock %}
+{% block content %}
+<section class="error-section">
+    <span class="error-code">{{ status_code }}</span>
+    <h1>{{ 'Немає доступу' if status_code == 403 else ('Сторінку не знайдено' if status_code == 404 else 'Не вдалося виконати запит') }}</h1>
+    <p>{{ message }}</p>
+    <a class="button button-secondary" href="{{ '/admin/cities' if current_user is defined and current_user else '/admin/login' }}">{{ 'До списку міст' if current_user is defined and current_user else 'До входу' }}</a>
+</section>
+{% endblock %}

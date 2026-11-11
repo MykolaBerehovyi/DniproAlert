@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import errors_list, threat_badge %}
+{% set active_page = 'cities' %}
+{% block title %}Міста{% endblock %}
+{% block content %}
+<div class="page-heading page-heading-row">
+    <h1>Міста</h1>
+    <span class="record-count">Записів: {{ cities|length }}</span>
+</div>
+{% if notice|default('') %}<div class="alert alert-success" role="status">{{ notice }}</div>{% endif %}
+{{ errors_list(errors) }}
+<section class="form-section" aria-labelledby="create-city-title">
+    <h2 id="create-city-title">Нове місто</h2>
+    <form action="/admin/cities" method="post" class="city-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="field">
+            <label for="city-code">Код</label>
+            <input id="city-code" name="code" value="{{ form.get('code', '') }}" type="text" maxlength="25" autocomplete="off" autocapitalize="none" spellcheck="false" required{% if errors.get('code') %} aria-invalid="true"{% endif %}>
+        </div>
+        <div class="field">
+            <label for="city-name">Назва</label>
+            <input id="city-name" name="name" value="{{ form.get('name', '') }}" type="text" maxlength="25" autocomplete="off" required{% if errors.get('name') %} aria-invalid="true"{% endif %}>
+        </div>
+        <button type="submit" class="button button-primary">Створити місто</button>
+    </form>
+</section>
+<section class="table-section" aria-label="Список міст">
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Міста">
+        <table class="data-table cities-table">
+            <thead>
+                <tr><th scope="col">Місто</th><th scope="col">Код</th><th scope="col">Загроза</th><th scope="col">Моніторинг</th><th scope="col" class="cell-action">Дії</th></tr>
+            </thead>
+            <tbody>
+            {% for city in cities %}
+                <tr>
+                    <th scope="row">{{ city.name }}</th>
+                    <td><span class="code-value">{{ city.code }}</span></td>
+                    <td>{% if city.monitoring_enabled %}{{ threat_badge(city.threat) }}{% else %}<span class="status status-unknown">Немає даних</span>{% endif %}</td>
+                    <td><span class="monitoring-state"><span class="state-dot{% if city.monitoring_enabled %} state-dot-active{% endif %}"></span>{{ 'Увімкнений' if city.monitoring_enabled else 'Вимкнений' }}</span></td>
+                    <td class="cell-action"><a href="/admin/cities/{{ city.id }}/edit" class="table-link">Редагувати</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="empty-state">Міст поки немає.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import errors_list, threat_badge %}
+{% set active_page = 'cities' %}
+{% block title %}Редагування міста{% endblock %}
+{% block content %}
+<a href="/admin/cities" class="back-link">До списку міст</a>
+<div class="page-heading"><h1>{{ city.name }}</h1></div>
+{% if notice|default('') %}<div class="alert alert-success" role="status">{{ notice }}</div>{% endif %}
+{{ errors_list(errors) }}
+<section class="edit-section" aria-label="Параметри міста">
+    <dl class="record-metadata">
+        <div><dt>Код</dt><dd class="code-value">{{ city.code }}</dd></div>
+        <div><dt>Загроза</dt><dd>{% if city.monitoring_enabled %}{{ threat_badge(city.threat) }}{% else %}<span class="status status-unknown">Немає даних</span>{% endif %}</dd></div>
+        <div><dt>Моніторинг</dt><dd>{{ 'Увімкнений' if city.monitoring_enabled else 'Вимкнений' }}</dd></div>
+    </dl>
+    <form action="/admin/cities/{{ city.id }}/edit" method="post" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="field">
+            <label for="city-name">Назва</label>
+            <input id="city-name" name="name" value="{{ form.get('name', city.name) }}" type="text" maxlength="25" required{% if errors.get('name') %} aria-invalid="true"{% endif %}>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="button button-primary">Зберегти</button>
+            <a href="/admin/cities" class="button button-secondary">Скасувати</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

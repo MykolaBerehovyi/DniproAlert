@@ -1,0 +1,22 @@
+{% macro errors_list(errors) -%}
+{% if errors %}
+<div class="alert alert-error" role="alert">
+    <ul>
+        {% for key, message in errors.items() %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro threat_badge(threat) -%}
+{% set value = threat.value if threat.value is defined else threat %}
+{% set labels = {'calm': 'Спокійно', 'drones': 'Дрони', 'ballistics': 'Балістика', 'combined': 'Комбінована атака', 'redLevel': 'Червоний рівень'} %}
+<span class="status status-{{ value if value in labels else 'unknown' }}">{{ 'Не є загрозою' if value is none else labels.get(value, 'Невідомо') }}</span>
+{%- endmacro %}
+
+{% macro role_options(selected) -%}
+<option value="admin"{% if selected == 'admin' %} selected{% endif %}>Адміністратор</option>
+<option value="superadmin"{% if selected == 'superadmin' %} selected{% endif %}>Суперадміністратор</option>
+{%- endmacro %}
