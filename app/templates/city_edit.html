@@ -10,7 +10,7 @@
 <section class="edit-section" aria-label="Параметри міста">
     <dl class="record-metadata">
         <div><dt>Код</dt><dd class="code-value">{{ city.code }}</dd></div>
-        <div><dt>Загроза</dt><dd>{% if city.monitoring_enabled %}{{ threat_badge(city.threat) }}{% else %}<span class="status status-unknown">Немає даних</span>{% endif %}</dd></div>
+        <div><dt>Загроза</dt><dd>{% if city.confirmed %}{{ threat_badge(city.threat) }}{% else %}<span class="status status-unknown">Немає даних</span>{% endif %}</dd></div>
         <div><dt>Моніторинг</dt><dd>{{ 'Увімкнений' if city.monitoring_enabled else 'Вимкнений' }}</dd></div>
     </dl>
     <form action="/admin/cities/{{ city.id }}/edit" method="post" class="stack-form">
@@ -24,5 +24,12 @@
             <a href="/admin/cities" class="button button-secondary">Скасувати</a>
         </div>
     </form>
+    {% if current_user.role.value == 'superadmin' and city.code == 'dnipro' and (city.monitoring_enabled or monitoring_configured) %}
+    <form action="/admin/cities/{{ city.id }}/monitoring" method="post" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="enabled" value="{{ 'false' if city.monitoring_enabled else 'true' }}">
+        <button type="submit" class="button button-secondary">{{ 'Вимкнути моніторинг' if city.monitoring_enabled else 'Увімкнути моніторинг' }}</button>
+    </form>
+    {% endif %}
 </section>
 {% endblock %}

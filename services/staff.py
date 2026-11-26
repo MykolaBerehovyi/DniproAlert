@@ -19,18 +19,20 @@ dummy_hash = password_hasher.hash(secrets.token_urlsafe(24))
 
 
 class LoginLimiter:
-    def __init__(self):
+    def __init__(self, limit=10, window_seconds=300):
         self.attempts = OrderedDict()
         self.lock = threading.Lock()
+        self.limit = limit
+        self.window_seconds = window_seconds
 
     def allow(self, address: str):
         now = time.monotonic()
         with self.lock:
-            recent = [value for value in self.attempts.pop(address, []) if now - value < 300]
+            recent = [value for value in self.attempts.pop(address, []) if now - value < self.window_seconds]
             self.attempts[address] = recent
             while len(self.attempts) > 4096:
                 self.attempts.popitem(last=False)
-            if len(recent) >= 10:
+            if len(recent) >= self.limit:
                 return False
             recent.append(now)
             return True

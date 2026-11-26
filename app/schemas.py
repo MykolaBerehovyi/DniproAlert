@@ -65,11 +65,28 @@ class ClassificationHistoryRead(BaseModel):
     source_chat_id: int
     source_message_id: int
     telegram_message: str
-    first_answer: str
-    final_answer: str
+    first_answer: str | None
+    final_answer: str | None
     threat: ThreatEnum | None
     occurred_at: datetime
     created_at: datetime
+    status: str
+    error: str | None
+
+
+class MobileStatus(BaseModel):
+    schema_version: int = 2
+    city: str
+    is_active: bool
+    ends_at: datetime | None = None
+    threat: ThreatEnum
+    version: int
+    event_id: str | None
+    occurred_at: datetime | None
+    expires_at: datetime | None
+    known: bool
+    summary: str | None
+    verified_at: datetime | None
 
 
 class StaffCreate(BaseModel):

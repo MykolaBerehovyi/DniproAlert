@@ -9,8 +9,11 @@ from starlette.exceptions import HTTPException
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from api.admin import router
+from api.clients import router as clients_router
+from api.status import router as status_router
 from app.config import ROOT, settings
-from app.database import Base, SessionLocal
+from app.database import SessionLocal
+from app.schema_migrations import upgrade_database
 from app.security import FormSizeLimitMiddleware
 from services.staff import LoginLimiter
 
@@ -22,7 +25,7 @@ def create_app(session_factory=None, initialize_db=True):
     async def lifespan(application):
         if initialize_db:
             with factory() as db:
-                Base.metadata.create_all(bind=db.get_bind())
+                upgrade_database(db.get_bind())
         yield
 
     application = FastAPI(title="Dnipro Alert Admin", lifespan=lifespan)
@@ -33,6 +36,8 @@ def create_app(session_factory=None, initialize_db=True):
     application.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
     application.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
     application.include_router(router)
+    application.include_router(clients_router)
+    application.include_router(status_router)
 
     @application.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -42,13 +47,13 @@ def create_app(session_factory=None, initialize_db=True):
         response.headers["Referrer-Policy"] = "same-origin"
         if request.url.path.startswith("/admin"):
             response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
-        if request.url.path.startswith(("/admin", "/api")):
+        if request.url.path.startswith(("/admin", "/api", "/clients", "/status")):
             response.headers["Cache-Control"] = "no-store"
         return response
 
     @application.exception_handler(HTTPException)
     async def http_error(request: Request, error: HTTPException):
-        if request.url.path.startswith("/api/"):
+        if request.url.path.startswith(("/api/", "/clients/")) or request.url.path == "/status":
             return JSONResponse({"detail": error.detail}, status_code=error.status_code)
         if error.status_code == 401:
             return RedirectResponse("/admin/login", status_code=303)

@@ -2,5 +2,43 @@
 .venv/
 .idea/
 __pycache__/
-*.pyc
+*.py[cod]
 *.log
+*.session
+*.session-journal
+credentials/
+start_ngrok.bat
+
+# Local databases and backups
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.dump
+*.backup
+*.bak
+*.sql.gz
+
+# Private credentials and signing files
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+**/*service-account*.json
+**/*adminsdk*.json
+
+# Test and build output
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Allow a placeholder-only template to be tracked
+!.env.example

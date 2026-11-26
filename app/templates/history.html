@@ -30,7 +30,7 @@
             <tr>
                 <td class="date-cell">{{ entry.occurred_at.strftime('%d.%m.%Y') if entry.occurred_at else '-' }}<span class="cell-secondary">{{ entry.occurred_at.strftime('%H:%M:%S') if entry.occurred_at else '' }}</span></td>
                 <td>{{ entry.city_name }}</td>
-                <td>{{ threat_badge(entry.threat) }}</td>
+                <td>{% if entry.status == 'done' %}{{ threat_badge(entry.threat) }}{% elif entry.status == 'pending' %}Очікує обробки{% elif entry.status == 'failed' %}Помилка{% else %}Пропущено{% endif %}</td>
                 <td class="message-cell">
                     <p class="message-preview">{{ entry.telegram_message|truncate(200, true) }}</p>
                     <details class="history-details">
@@ -38,7 +38,8 @@
                         <div class="details-content">
                             <dl class="decision-list">
                                 <div><dt>Перша відповідь</dt><dd>{{ entry.first_answer }}</dd></div>
-                                <div><dt>Фінальна відповідь</dt><dd class="final-answer">{{ entry.final_answer }}</dd></div>
+                                <div><dt>Фінальна відповідь</dt><dd class="final-answer">{{ entry.final_answer or '—' }}</dd></div>
+                                {% if entry.error %}<div><dt>Помилка</dt><dd>{{ entry.error }}</dd></div>{% endif %}
                                 <div><dt>Чат / повідомлення</dt><dd class="code-value">{{ entry.source_chat_id }} / {{ entry.source_message_id }}</dd></div>
                             </dl>
                             <p class="full-message">{{ entry.telegram_message }}</p>

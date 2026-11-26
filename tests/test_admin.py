@@ -325,7 +325,7 @@ class AdminTests(unittest.TestCase):
             session.add(self.ClassificationHistory(
                 city_id=self.city_id, source_chat_id=123, source_message_id=456,
                 telegram_message='<script>alert("x")</script>',
-                first_answer="Нет", final_answer="Нет", threat=None,
+                first_answer="Ні", final_answer="Ні", threat=None,
                 occurred_at=datetime.now(timezone.utc),
             ))
         self.authenticated("operator")

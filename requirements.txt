@@ -60,3 +60,7 @@ websockets==17.4
 SQLAlchemy==2.1.8
 psycopg[binary]==3.3.8
 pwdlib[argon2]==0.3.1
+alembic==1.20.1
+firebase-admin==7.4.0
+openai==2.41.1
+Telethon==1.46.0

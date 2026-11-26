@@ -5,10 +5,11 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.database import Base, SessionLocal, engine
+from app.database import SessionLocal
 from app.enums import StaffRole
 from app.models import StaffUsers
 from app.schemas import StaffCreate
+from app.schema_migrations import upgrade_database
 from services.staff import create_staff
 
 
@@ -23,7 +24,7 @@ def main():
         data = StaffCreate(login=args.login.strip().lower(), password=password, role=StaffRole.SUPERADMIN)
     except ValidationError:
         raise SystemExit("Use a 3-50 character login (a-z, 0-9, _, ., -) and a 12-128 character password.")
-    Base.metadata.create_all(engine)
+    upgrade_database()
     with SessionLocal() as db:
         if db.scalar(select(StaffUsers.id).where(StaffUsers.is_active.is_(True), StaffUsers.role == StaffRole.SUPERADMIN)):
             raise SystemExit("An active superadmin already exists. Add staff through the admin panel.")

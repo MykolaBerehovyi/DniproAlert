@@ -35,7 +35,7 @@
                 <tr>
                     <th scope="row">{{ city.name }}</th>
                     <td><span class="code-value">{{ city.code }}</span></td>
-                    <td>{% if city.monitoring_enabled %}{{ threat_badge(city.threat) }}{% else %}<span class="status status-unknown">Немає даних</span>{% endif %}</td>
+                    <td>{% if city.confirmed %}{{ threat_badge(city.threat) }}{% else %}<span class="status status-unknown">Немає даних</span>{% endif %}</td>
                     <td><span class="monitoring-state"><span class="state-dot{% if city.monitoring_enabled %} state-dot-active{% endif %}"></span>{{ 'Увімкнений' if city.monitoring_enabled else 'Вимкнений' }}</span></td>
                     <td class="cell-action"><a href="/admin/cities/{{ city.id }}/edit" class="table-link">Редагувати</a></td>
                 </tr>

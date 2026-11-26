@@ -4,15 +4,16 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.config import settings
+from app.config import ROOT, settings
 from app.models import Cities, StaffSessions
 from app.schemas import CityCreate, CityRead, CityUpdate, ClassificationHistoryRead, StaffCreate, StaffRead, StaffUpdate
 from app.security import AuthContext, current_auth, get_db, require_superadmin, verify_csrf
 from repository import admin as repository
+from services.alerts import CITY_CODE
 from services import staff as service
 
 router = APIRouter()
@@ -55,11 +56,19 @@ def render(request: Request, template: str, auth: AuthContext | None = None, sta
         "errors": {},
         "form": {},
         "notice": None,
+        "monitoring_configured": monitoring_configured(),
         **context,
     }
     return request.app.state.templates.TemplateResponse(
         request=request, name=template, context=context, status_code=status_code
     )
+
+
+def monitoring_configured():
+    return bool(all((
+        settings.telegram_source, settings.telegram_api_id, settings.telegram_api_hash,
+        settings.openai_api_key, settings.firebase_credentials_path,
+    )) and (ROOT / settings.telegram_session_path).is_file())
 
 
 def validation_errors(error: ValidationError):
@@ -158,6 +167,24 @@ def edit_city(city_id: int, request: Request, form: FormData, db: Db, auth: Auth
     except ValidationError as error:
         return render(request, "city_edit.html", auth, status_code=422, city=city, form=fields, errors=validation_errors(error))
     repository.rename_city(db, city, data.name)
+    return RedirectResponse("/admin/cities?saved=true", status_code=303)
+
+
+@router.post("/admin/cities/{city_id}/monitoring", include_in_schema=False)
+def set_monitoring(city_id: int, request: Request, form: FormData, db: Db, auth: Superadmin):
+    fields = checked_fields(request, form, auth)
+    if set(fields) != {"enabled"} or fields["enabled"] not in {"true", "false"}:
+        raise HTTPException(422, "Некоректний стан моніторингу.")
+    city = db.scalar(select(Cities).where(Cities.id == city_id).with_for_update())
+    if city is None:
+        raise HTTPException(404, "Місто не знайдено.")
+    enabled = fields["enabled"] == "true"
+    if enabled and (city.code != CITY_CODE or not monitoring_configured()):
+        raise HTTPException(409, "Моніторинг для міста ще не налаштовано.")
+    if city.monitoring_enabled != enabled:
+        city.monitoring_enabled = enabled
+        city.listener_seen_at = None
+        db.commit()
     return RedirectResponse("/admin/cities?saved=true", status_code=303)
 
 
